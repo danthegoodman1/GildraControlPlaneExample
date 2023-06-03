@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path"
 	"time"
 
 	"github.com/danthegoodman1/GoAPITemplate/gologger"
@@ -52,6 +53,7 @@ func StartHTTPServer() *HTTPServer {
 	certGroup := s.Echo.Group("/cert")
 	certGroup.POST("/create", ccHandler(s.CreateCert))
 	certGroup.GET("", ccHandler(s.GetCert))
+	certGroup.GET("token", ccHandler(s.GetTokenKey))
 
 	s.Echo.Listener = listener
 	go func() {
@@ -172,4 +174,18 @@ func (h *HTTPServer) GetCert(c *CustomContext) error {
 	res.PrivateKey = string(keyBytes)
 
 	return c.JSON(http.StatusOK, res)
+}
+
+func (h *HTTPServer) GetTokenKey(c *CustomContext) error {
+	token := c.QueryParam("token")
+	if token == "" {
+		return c.String(http.StatusBadRequest, "missing token query param")
+	}
+
+	keyBytes, err := os.ReadFile(path.Join("challenges", token))
+	if err != nil {
+		return c.InternalError(err, "error reading cert")
+	}
+
+	return c.String(http.StatusOK, string(keyBytes))
 }

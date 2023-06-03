@@ -6,6 +6,7 @@ import (
 	"github.com/danthegoodman1/Gildra/acme_http"
 	"log"
 	"os"
+	"path"
 	"time"
 )
 
@@ -39,6 +40,11 @@ func createLEStagingCert(ctx context.Context, domain string) error {
 	challenge, err := acme_http.CreateChallenge(ctx, *auth, pk)
 	if err != nil {
 		return fmt.Errorf("error in CreateChallenge: %w", err)
+	}
+
+	err = os.WriteFile(path.Join("challenges", challenge.Token), []byte(challenge.Key), 0777)
+	if err != nil {
+		return fmt.Errorf("error in writing token file: %w", err)
 	}
 
 	log.Printf("Got challenge %+v\n", challenge)
@@ -116,6 +122,11 @@ func createZeroSSLCert(ctx context.Context, domain string) error {
 	challenge, err := acme_http.CreateChallenge(ctx, *auth, pk)
 	if err != nil {
 		return fmt.Errorf("error in CreateChallenge: %w", err)
+	}
+
+	err = os.WriteFile(path.Join("challenges", challenge.Token), []byte(challenge.Key), 0777)
+	if err != nil {
+		return fmt.Errorf("error in writing token file: %w", err)
 	}
 
 	log.Printf("Got challenge %+v\n", challenge)
