@@ -53,7 +53,7 @@ func StartHTTPServer() *HTTPServer {
 	certGroup := s.Echo.Group("/cert")
 	certGroup.POST("/create", ccHandler(s.CreateCert))
 	certGroup.GET("", ccHandler(s.GetCert))
-	certGroup.GET("token", ccHandler(s.GetTokenKey))
+	certGroup.GET("/token", ccHandler(s.GetTokenKey))
 
 	s.Echo.Listener = listener
 	go func() {
