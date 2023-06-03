@@ -98,7 +98,10 @@ func createZeroSSLCert(ctx context.Context, domain string) error {
 		return fmt.Errorf("error in GetCADir: %w", err)
 	}
 
-	acctKid, pk, err := acme_http.CreateAccount(ctx, "deftesting@icloud.com", caDir, nil)
+	acctKid, pk, err := acme_http.CreateAccount(ctx, "deftesting@icloud.com", caDir, &acme_http.EABOptions{
+		KID:     os.Getenv("ZEROSSL_KID"),
+		HMACKey: os.Getenv("ZEROSSL_HMAC"),
+	})
 	if err != nil {
 		return fmt.Errorf("error in CreateAccount: %w", err)
 	}

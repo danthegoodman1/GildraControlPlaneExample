@@ -1,4 +1,4 @@
-# GoAPITemplate
+# GildraControlPlaneExample
 
 ## Log Context
 

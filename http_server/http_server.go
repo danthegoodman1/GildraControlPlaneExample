@@ -11,8 +11,8 @@ import (
 	"path"
 	"time"
 
-	"github.com/danthegoodman1/GoAPITemplate/gologger"
-	"github.com/danthegoodman1/GoAPITemplate/utils"
+	"github.com/danthegoodman1/GildraControlPlaneExample/gologger"
+	"github.com/danthegoodman1/GildraControlPlaneExample/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -139,7 +139,7 @@ func (h *HTTPServer) CreateCert(c *CustomContext) error {
 		err = createLEStagingCert(c.Request().Context(), reqBody.Domain)
 	} else if reqBody.Provider == "zerossl" {
 		log.Println("creating zerossl cert")
-
+		err = createZeroSSLCert(c.Request().Context(), reqBody.Domain)
 	}
 	if err != nil {
 		return c.InternalError(err, "error creating cert")

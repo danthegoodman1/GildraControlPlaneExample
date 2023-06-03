@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/danthegoodman1/GoAPITemplate/gologger"
-	"github.com/danthegoodman1/GoAPITemplate/http_server"
-	"github.com/danthegoodman1/GoAPITemplate/utils"
+	"github.com/danthegoodman1/GildraControlPlaneExample/gologger"
+	"github.com/danthegoodman1/GildraControlPlaneExample/http_server"
+	"github.com/danthegoodman1/GildraControlPlaneExample/utils"
 )
 
 var logger = gologger.NewLogger()
