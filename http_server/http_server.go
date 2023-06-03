@@ -51,7 +51,7 @@ func StartHTTPServer() *HTTPServer {
 	s.Echo.GET("/hc", s.HealthCheck)
 	certGroup := s.Echo.Group("/cert")
 	certGroup.POST("/create", ccHandler(s.CreateCert))
-	certGroup.GET("/", ccHandler(s.GetCert))
+	certGroup.GET("", ccHandler(s.GetCert))
 
 	s.Echo.Listener = listener
 	go func() {
@@ -160,12 +160,12 @@ func (h *HTTPServer) GetCert(c *CustomContext) error {
 
 	certBytes, err := os.ReadFile(fmt.Sprintf("%s.cert", domain))
 	if err != nil {
-		return fmt.Errorf("error in reading cert: %w", err)
+		return c.InternalError(err, "error reading cert")
 	}
 
 	keyBytes, err := os.ReadFile(fmt.Sprintf("%s.key", domain))
 	if err != nil {
-		return fmt.Errorf("error in reading key: %w", err)
+		return c.InternalError(err, "error reading key")
 	}
 
 	res.Cert = string(certBytes)
