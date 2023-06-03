@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -48,6 +49,9 @@ func StartHTTPServer() *HTTPServer {
 
 	// technical - no auth
 	s.Echo.GET("/hc", s.HealthCheck)
+	certGroup := s.Echo.Group("/cert")
+	certGroup.POST("/create", ccHandler(s.CreateCert))
+	certGroup.GET("/", ccHandler(s.GetCert))
 
 	s.Echo.Listener = listener
 	go func() {
@@ -114,4 +118,58 @@ func LoggerMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		logger.Debug().Str("method", req.Method).Str("remote_ip", c.RealIP()).Str("req_uri", req.RequestURI).Str("handler_path", c.Path()).Str("path", p).Int("status", res.Status).Int64("latency_ns", int64(stop)).Str("protocol", req.Proto).Str("bytes_in", cl).Int64("bytes_out", res.Size).Msg("req recived")
 		return nil
 	}
+}
+
+type CreateCertReq struct {
+	Domain   string
+	Provider string
+}
+
+func (h *HTTPServer) CreateCert(c *CustomContext) error {
+	var reqBody CreateCertReq
+	if err := ValidateRequest(c, &reqBody); err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
+	}
+
+	var err error
+	if reqBody.Provider == "le-staging" || reqBody.Provider == "" {
+		log.Println("creating le-staging cert")
+		err = createLEStagingCert(c.Request().Context(), reqBody.Domain)
+	} else if reqBody.Provider == "zerossl" {
+		log.Println("creating zerossl cert")
+
+	}
+	if err != nil {
+		return c.InternalError(err, "error creating cert")
+	}
+	return c.String(http.StatusOK, "created cert for domain!")
+}
+
+type GetCertRes struct {
+	Cert       string
+	PrivateKey string
+}
+
+func (h *HTTPServer) GetCert(c *CustomContext) error {
+	domain := c.QueryParam("domain")
+	if domain == "" {
+		return c.String(http.StatusBadRequest, "missing domain query param")
+	}
+
+	var res GetCertRes
+
+	certBytes, err := os.ReadFile(fmt.Sprintf("%s.cert", domain))
+	if err != nil {
+		return fmt.Errorf("error in reading cert: %w", err)
+	}
+
+	keyBytes, err := os.ReadFile(fmt.Sprintf("%s.key", domain))
+	if err != nil {
+		return fmt.Errorf("error in reading key: %w", err)
+	}
+
+	res.Cert = string(certBytes)
+	res.PrivateKey = string(keyBytes)
+
+	return c.JSON(http.StatusOK, res)
 }

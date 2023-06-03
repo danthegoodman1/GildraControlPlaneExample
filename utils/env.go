@@ -3,5 +3,6 @@ package utils
 import "os"
 
 var (
-	CRDB_DSN = os.Getenv("CRDB_DSN")
+	ZEROSSL_KID  = os.Getenv("ZEROSSL_KID")
+	ZEROSSL_HMAC = os.Getenv("ZEROSSL_HMAC")
 )
