@@ -156,8 +156,8 @@ func (h *HTTPServer) CreateCert(c *CustomContext) error {
 }
 
 type GetCertRes struct {
-	Cert       string
-	PrivateKey string
+	Cert string
+	Key  string
 }
 
 func (h *HTTPServer) GetCert(c *CustomContext) error {
@@ -179,7 +179,7 @@ func (h *HTTPServer) GetCert(c *CustomContext) error {
 	}
 
 	res.Cert = string(certBytes)
-	res.PrivateKey = string(keyBytes)
+	res.Key = string(keyBytes)
 
 	return c.JSON(http.StatusOK, res)
 }
