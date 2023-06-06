@@ -1,15 +1,5 @@
 # GildraControlPlaneExample
 
-## Log Context
-
-The thing that gives logging a separate context is the function call:
-
-```go
-logger := gologger.NewLogger()
-// ...
-ctx = logger.WithContext(ctx)
 ```
-
-Otherwise all logging will share the context (weird I know).
-
-From here you can use `logger := zerolog.Ctx(ctx)`
+curl -X POST http://localhost:8080/create -H 'content-type: application/json' -d '{"domain":"getinsync.co","provider":"zerossl"}
+```

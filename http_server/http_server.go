@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/danthegoodman1/Gildra/control_plane"
 	"github.com/danthegoodman1/Gildra/routing"
+	"github.com/davecgh/go-spew/spew"
 	"log"
 	"net"
 	"net/http"
@@ -52,11 +53,12 @@ func StartHTTPServer() *HTTPServer {
 
 	// technical - no auth
 	s.Echo.GET("/hc", s.HealthCheck)
+	s.Echo.GET("/", s.Hello)
+	s.Echo.POST("/create", ccHandler(s.CreateCert))
 	certGroup := s.Echo.Group("/domains/:domain")
-	certGroup.POST("/create", ccHandler(s.CreateCert))
 	certGroup.GET("/cert", ccHandler(s.GetCert))
 	certGroup.GET("/config", ccHandler(s.GetConfig))
-	certGroup.GET("/token/:token", ccHandler(s.GetTokenKey))
+	certGroup.GET("/challenge/:token", ccHandler(s.GetTokenKey))
 
 	s.Echo.Listener = listener
 	go func() {
@@ -91,6 +93,9 @@ func ValidateRequest(c echo.Context, s interface{}) error {
 
 func (*HTTPServer) HealthCheck(c echo.Context) error {
 	return c.String(http.StatusOK, "ok")
+}
+func (*HTTPServer) Hello(c echo.Context) error {
+	return c.String(http.StatusOK, spew.Sdump(c.Request().Header))
 }
 
 func (s *HTTPServer) Shutdown(ctx context.Context) error {
@@ -156,7 +161,7 @@ type GetCertRes struct {
 }
 
 func (h *HTTPServer) GetCert(c *CustomContext) error {
-	domain := c.QueryParam("domain")
+	domain := c.Param("domain")
 	if domain == "" {
 		return c.String(http.StatusBadRequest, "missing domain query param")
 	}
@@ -180,7 +185,7 @@ func (h *HTTPServer) GetCert(c *CustomContext) error {
 }
 
 func (h *HTTPServer) GetConfig(c *CustomContext) error {
-	domain := c.QueryParam("domain")
+	domain := c.Param("domain")
 	if domain == "" {
 		return c.String(http.StatusBadRequest, "missing domain query param")
 	}
@@ -191,7 +196,7 @@ func (h *HTTPServer) GetConfig(c *CustomContext) error {
 				{
 					Destinations: []routing.Destination{
 						{
-							URL: "http://localhost:9090",
+							URL: "http://localhost:8080",
 						},
 					},
 				},
