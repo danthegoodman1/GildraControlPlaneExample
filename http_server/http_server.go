@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/danthegoodman1/Gildra/control_plane"
+	"github.com/danthegoodman1/Gildra/routing"
 	"log"
 	"net"
 	"net/http"
@@ -50,10 +52,11 @@ func StartHTTPServer() *HTTPServer {
 
 	// technical - no auth
 	s.Echo.GET("/hc", s.HealthCheck)
-	certGroup := s.Echo.Group("/cert")
+	certGroup := s.Echo.Group("/domains/:domain")
 	certGroup.POST("/create", ccHandler(s.CreateCert))
-	certGroup.GET("", ccHandler(s.GetCert))
-	certGroup.GET("/token", ccHandler(s.GetTokenKey))
+	certGroup.GET("/cert", ccHandler(s.GetCert))
+	certGroup.GET("/config", ccHandler(s.GetConfig))
+	certGroup.GET("/token/:token", ccHandler(s.GetTokenKey))
 
 	s.Echo.Listener = listener
 	go func() {
@@ -176,8 +179,31 @@ func (h *HTTPServer) GetCert(c *CustomContext) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+func (h *HTTPServer) GetConfig(c *CustomContext) error {
+	domain := c.QueryParam("domain")
+	if domain == "" {
+		return c.String(http.StatusBadRequest, "missing domain query param")
+	}
+
+	res := routing.Config{Rules: []routing.Rule{
+		{
+			Matches: []routing.Match{
+				{
+					Destinations: []routing.Destination{
+						{
+							URL: "http://localhost:9090",
+						},
+					},
+				},
+			},
+		},
+	}}
+
+	return c.JSON(http.StatusOK, res)
+}
+
 func (h *HTTPServer) GetTokenKey(c *CustomContext) error {
-	token := c.QueryParam("token")
+	token := c.Param("token")
 	if token == "" {
 		return c.String(http.StatusBadRequest, "missing token query param")
 	}
@@ -187,5 +213,5 @@ func (h *HTTPServer) GetTokenKey(c *CustomContext) error {
 		return c.InternalError(err, "error reading cert")
 	}
 
-	return c.String(http.StatusOK, string(keyBytes))
+	return c.JSON(http.StatusOK, control_plane.ChallengeTokenRes{Key: string(keyBytes)})
 }
