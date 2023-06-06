@@ -3,27 +3,30 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/danthegoodman1/GildraControlPlaneExample/gologger"
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/danthegoodman1/GildraControlPlaneExample/gologger"
 	"github.com/danthegoodman1/GildraControlPlaneExample/http_server"
 	"github.com/danthegoodman1/GildraControlPlaneExample/utils"
 )
 
-var logger = gologger.NewLogger()
+var logger zerolog.Logger
 
 func main() {
 	if _, err := os.Stat(".env"); err == nil {
-		err = godotenv.Load()
+		err = godotenv.Load(".env")
 		if err != nil {
 			logger.Error().Err(err).Msg("error loading .env file, exiting")
 			os.Exit(1)
 		}
 	}
+
+	logger = gologger.NewLogger()
 	logger.Debug().Msg("starting control plane")
 
 	httpServer := http_server.StartHTTPServer()
